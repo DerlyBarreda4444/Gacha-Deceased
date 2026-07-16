@@ -3,19 +3,18 @@
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // ==========================================
 // 1. CONFIGURACIÓN DE FIREBASE
 // ==========================================
-// REEMPLAZA ESTO CON LA CONFIGURACIÓN DE TU PROYECTO FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyDB-gS7vN9njSXqRMtPC19hMDU6qWEPwzQ",
-  authDomain: "gacha-86072.firebaseapp.com",
-  projectId: "gacha-86072",
-  storageBucket: "gacha-86072.firebasestorage.app",
-  messagingSenderId: "1090847745401",
-  appId: "1:1090847745401:web:66cfb777a058966a8fbba8"
+    apiKey: "AIzaSyDB-gS7vN9njSXqRMtPC19hMDU6qWEPwzQ",
+    authDomain: "gacha-86072.firebaseapp.com",
+    projectId: "gacha-86072",
+    storageBucket: "gacha-86072.firebasestorage.app",
+    messagingSenderId: "1090847745401",
+    appId: "1:1090847745401:web:66cfb777a058966a8fbba8"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -50,7 +49,7 @@ const ui = {
 };
 
 // ==========================================
-// 3. SISTEMA DE AUTENTICACIÓN (Actualizado para Nick)
+// 3. SISTEMA DE AUTENTICACIÓN
 // ==========================================
 
 // Iniciar sesión
@@ -59,13 +58,18 @@ document.getElementById('btn-login').addEventListener('click', async (e) => {
     const nick = document.getElementById('nick').value.trim();
     const pass = document.getElementById('password').value;
     
-    // Engañamos a Firebase creando un correo falso con el nick
+    if(!nick || !pass) {
+        document.getElementById('auth-error').innerText = "Llena todos los campos.";
+        return;
+    }
+
     const fakeEmail = nick.toLowerCase() + "@gacha.local";
 
     try {
         await signInWithEmailAndPassword(auth, fakeEmail, pass);
     } catch (error) {
         document.getElementById('auth-error').innerText = "Credenciales incorrectas o usuario no existe.";
+        console.error("Error Login:", error);
     }
 });
 
@@ -86,8 +90,6 @@ document.getElementById('btn-register').addEventListener('click', async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, pass);
         const user = userCredential.user;
         
-        // AQUÍ DEFINIMOS QUIÉN ES EL ADMIN AUTOMÁTICAMENTE
-        // Cambia "ElAdminSupremo" por el Nick exacto que usará el administrador
         const userRole = (nick === "Quesillodepeneprepucial") ? "admin" : "player";
 
         await setDoc(doc(db, "users", user.uid), {
@@ -101,6 +103,7 @@ document.getElementById('btn-register').addEventListener('click', async (e) => {
         });
     } catch (error) {
         document.getElementById('auth-error').innerText = "Error: El usuario ya existe o la contraseña es muy débil.";
+        console.error("Error Registro:", error);
     }
 });
 
@@ -111,16 +114,23 @@ document.getElementById('btn-logout').addEventListener('click', () => signOut(au
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
-        screens.auth.classList.remove('active');
-        screens.main.classList.add('active');
-        loadUserData();
-        loadCrates();
-        loadGlobalHistory();
+        try {
+            screens.auth.classList.remove('active');
+            screens.main.classList.add('active');
+            loadUserData();
+            loadCrates();
+            loadGlobalHistory();
+        } catch(e) {
+            console.error("Error de interfaz:", e);
+            alert("Error al cargar la pantalla principal.");
+        }
     } else {
         currentUser = null;
         userData = null;
-        screens.auth.classList.add('active');
-        screens.main.classList.remove('active');
+        if(screens.auth && screens.main) {
+            screens.auth.classList.add('active');
+            screens.main.classList.remove('active');
+        }
     }
 });
 
@@ -129,57 +139,74 @@ onAuthStateChanged(auth, async (user) => {
 // ==========================================
 function loadUserData() {
     const userRef = doc(db, "users", currentUser.uid);
-    // onSnapshot permite que los tokens e inventario se actualicen en tiempo real
+    
     onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
             userData = docSnap.data();
             ui.nick.innerText = userData.nick;
-            ui.tokens.innerText = userData.tokens;
+            ui.tokens.innerText = userData.tokens || 0;
             ui.pity.innerText = userData.pityCounter || 0;
             
             if (userData.role === "admin") {
                 ui.btnAdmin.classList.remove('hidden');
                 loadAdminUsersList();
+            } else {
+                ui.btnAdmin.classList.add('hidden');
             }
 
-            renderInventory(userData.inventory);
+            renderInventory(userData.inventory || {});
+        } else {
+            console.warn("No se encontró el documento del usuario en Firestore.");
         }
+    }, (error) => {
+        console.error("Error de Firestore:", error);
+        alert("Error de base de datos. Verifica que las Reglas de Firestore estén en Producción.");
     });
 }
 
 async function loadCrates() {
-    const cratesSnapshot = await getDocs(collection(db, "crates"));
-    cratesData = [];
-    ui.cratesList.innerHTML = '';
-    
-    cratesSnapshot.forEach((doc) => {
-        const crate = { id: doc.id, ...doc.data() };
-        cratesData.push(crate);
+    try {
+        const cratesSnapshot = await getDocs(collection(db, "crates"));
+        cratesData = [];
+        ui.cratesList.innerHTML = '';
         
-        const div = document.createElement('div');
-        div.className = 'crate-card';
-        div.innerHTML = `<h3>${crate.name}</h3>`;
-        div.onclick = () => selectCrate(crate, div);
-        ui.cratesList.appendChild(div);
-    });
+        cratesSnapshot.forEach((doc) => {
+            const crate = { id: doc.id, ...doc.data() };
+            cratesData.push(crate);
+            
+            const div = document.createElement('div');
+            div.className = 'crate-card';
+            div.innerHTML = `<h3>${crate.name}</h3>`;
+            div.onclick = () => selectCrate(crate, div);
+            ui.cratesList.appendChild(div);
+        });
+    } catch(e) {
+        console.error("Error al cargar cajas:", e);
+    }
 }
 
 function loadGlobalHistory() {
-    const historyQuery = query(collection(db, "history"), orderBy("timestamp", "desc"), limit(20));
-    onSnapshot(historyQuery, (snapshot) => {
-        ui.historyList.innerHTML = '';
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const date = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Reciente';
-            ui.historyList.innerHTML += `
-                <div class="history-entry">
-                    <strong>${data.nick}</strong> obtuvo <span class="rarity-${data.rarity}">${data.item}</span> 
-                    (Caja: ${data.crateName})
-                    <span class="date">${date}</span>
-                </div>
-            `;
+    try {
+        const historyQuery = query(collection(db, "history"), orderBy("timestamp", "desc"), limit(20));
+        onSnapshot(historyQuery, (snapshot) => {
+            ui.historyList.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const date = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Reciente';
+                ui.historyList.innerHTML += `
+                    <div class="history-entry">
+                        <strong>${data.nick}</strong> obtuvo <span class="rarity-${data.rarity}">${data.item}</span> 
+                        (Caja: ${data.crateName})
+                        <span class="date">${date}</span>
+                    </div>
+                `;
+            });
+        }, (error) => {
+            console.error("Error al cargar historial:", error);
         });
-    });
+    } catch(e) {
+        console.error("Error Historial:", e);
+    }
 }
 
 // ==========================================
@@ -219,41 +246,36 @@ document.getElementById('btn-pull-10').addEventListener('click', () => pullGacha
 
 async function pullGacha(amount) {
     if (!selectedCrate) return alert("Selecciona una caja primero");
-    if (userData.tokens < amount) return alert("No tienes suficientes tokens");
+    if ((userData.tokens || 0) < amount) return alert("No tienes suficientes tokens");
 
     const cost = amount;
     let currentPity = userData.pityCounter || 0;
     const results = [];
     let historyBatch = [];
-    const newInventory = { ...userData.inventory };
+    const newInventory = { ...(userData.inventory || {}) };
 
-    // Calcular tiradas
     for (let i = 0; i < amount; i++) {
         currentPity++;
         let forceHighRarity = false;
         
-        // PITY SYSTEM: A la tirada 10 sin épico/legendario, forzamos uno
         if (currentPity >= 10) {
             forceHighRarity = true;
         }
 
         const pulledItem = rollItem(selectedCrate.items, forceHighRarity);
         
-        // Si sale épico o legendario, reseteamos pity
         if (pulledItem.rarity === "Epic" || pulledItem.rarity === "Legendary") {
             currentPity = 0;
         }
 
         results.push(pulledItem);
 
-        // Sumar al inventario localmente
         if (newInventory[pulledItem.name]) {
             newInventory[pulledItem.name].amount += 1;
         } else {
             newInventory[pulledItem.name] = { rarity: pulledItem.rarity, amount: 1 };
         }
 
-        // Preparar historial
         historyBatch.push({
             uid: currentUser.uid,
             nick: userData.nick,
@@ -264,7 +286,6 @@ async function pullGacha(amount) {
         });
     }
 
-    // Actualizar Firebase
     const userRef = doc(db, "users", currentUser.uid);
     try {
         await updateDoc(userRef, {
@@ -273,14 +294,13 @@ async function pullGacha(amount) {
             inventory: newInventory
         });
 
-        // Guardar historiales
         for (const record of historyBatch) {
             await addDoc(collection(db, "history"), record);
         }
 
         showResultsModal(results);
     } catch (error) {
-        alert("Hubo un error al procesar la tirada.");
+        alert("Hubo un error al procesar la tirada. Mira la consola (F12).");
         console.error(error);
     }
 }
@@ -290,7 +310,6 @@ function rollItem(items, forceHighRarity) {
     
     if (forceHighRarity) {
         pool = items.filter(i => i.rarity === "Epic" || i.rarity === "Legendary");
-        // Si la caja no tiene épicos/legendarios (raro, pero posible), usar todo el pool
         if (pool.length === 0) pool = items; 
     }
 
@@ -303,7 +322,7 @@ function rollItem(items, forceHighRarity) {
             return item;
         }
     }
-    return pool[pool.length - 1]; // Fallback
+    return pool[pool.length - 1]; 
 }
 
 function renderInventory(inventory) {
@@ -330,7 +349,6 @@ function showResultsModal(results) {
     itemsContainer.innerHTML = '';
     btnClose.classList.add('hidden');
 
-    // Simular tiempo de apertura
     setTimeout(() => {
         title.innerText = "¡Recompensas Obtenidas!";
         itemsContainer.innerHTML = results.map(item => `
@@ -346,7 +364,6 @@ function showResultsModal(results) {
 document.getElementById('btn-close-result').addEventListener('click', () => {
     document.getElementById('result-modal').classList.add('hidden');
 });
-
 
 // ==========================================
 // 7. PANEL DE ADMINISTRADOR
@@ -367,7 +384,7 @@ async function loadAdminUsersList() {
     
     snapshot.forEach(doc => {
         const data = doc.data();
-        select.innerHTML += `<option value="${doc.id}">${data.nick} (${data.tokens} tokens)</option>`;
+        select.innerHTML += `<option value="${doc.id}">${data.nick} (${data.tokens || 0} tokens)</option>`;
     });
 }
 
@@ -382,13 +399,13 @@ document.getElementById('btn-add-tokens').addEventListener('click', async () => 
             tokens: increment(amount)
         });
         document.getElementById('admin-msg').innerText = `Se añadieron ${amount} tokens exitosamente.`;
-        loadAdminUsersList(); // Actualizar lista
+        loadAdminUsersList(); 
     } catch (e) {
         document.getElementById('admin-msg').innerText = "Error: " + e.message;
     }
 });
 
-// Cajas por defecto (Instalador rápido para el admin)
+// Cajas por defecto 
 document.getElementById('btn-init-crates').addEventListener('click', async () => {
     if(!confirm("Esto creará las 4 cajas iniciales en la base de datos. ¿Continuar?")) return;
     
