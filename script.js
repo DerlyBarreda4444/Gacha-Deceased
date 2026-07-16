@@ -50,50 +50,61 @@ const ui = {
 };
 
 // ==========================================
-// 3. SISTEMA DE AUTENTICACIÓN
+// 3. SISTEMA DE AUTENTICACIÓN (Actualizado para Nick)
 // ==========================================
+
+// Iniciar sesión
 document.getElementById('btn-login').addEventListener('click', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value;
+    const nick = document.getElementById('nick').value.trim();
     const pass = document.getElementById('password').value;
+    
+    // Engañamos a Firebase creando un correo falso con el nick
+    const fakeEmail = nick.toLowerCase() + "@gacha.local";
+
     try {
-        await signInWithEmailAndPassword(auth, email, pass);
+        await signInWithEmailAndPassword(auth, fakeEmail, pass);
     } catch (error) {
-        document.getElementById('auth-error').innerText = "Error al iniciar sesión: " + error.message;
+        document.getElementById('auth-error').innerText = "Credenciales incorrectas o usuario no existe.";
     }
 });
 
+// Registrarse
 document.getElementById('btn-register').addEventListener('click', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('email').value;
+    const nick = document.getElementById('nick').value.trim();
     const pass = document.getElementById('password').value;
-    const nick = document.getElementById('nick').value;
     
-    if(!nick) {
-        document.getElementById('auth-error').innerText = "Debes ingresar tu nick de Minecraft.";
+    if(!nick || pass.length < 6) {
+        document.getElementById('auth-error').innerText = "Ingresa tu Nick y una contraseña (mínimo 6 caracteres).";
         return;
     }
 
+    const fakeEmail = nick.toLowerCase() + "@gacha.local";
+
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, pass);
         const user = userCredential.user;
         
-        // Crear documento del usuario en Firestore
+        // AQUÍ DEFINIMOS QUIÉN ES EL ADMIN AUTOMÁTICAMENTE
+        // Cambia "ElAdminSupremo" por el Nick exacto que usará el administrador
+        const userRole = (nick === "ElAdminSupremo") ? "admin" : "player";
+
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             nick: nick,
-            email: email,
-            tokens: 0, // Inician en 0, el admin les da
+            tokens: 0,
             inventory: {},
-            pityCounter: 0, // Para el sistema de pity
-            role: "player", // Cambiar manualmente a "admin" en Firebase para el primer admin
+            pityCounter: 0,
+            role: userRole,
             createdAt: serverTimestamp()
         });
     } catch (error) {
-        document.getElementById('auth-error').innerText = "Error al registrar: " + error.message;
+        document.getElementById('auth-error').innerText = "Error: El usuario ya existe o la contraseña es muy débil.";
     }
 });
 
+// Cerrar sesión
 document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
 
 // Observador de estado de sesión
