@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeceasedCraft Gacha Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Pantalla de Login / Registro -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-box">
+            <h1>DECEASEDCRAFT<br><span>GACHA MANAGER</span></h1>
+            <p>Sobrevive y gana recompensas</p>
+            
+            <form id="auth-form">
+                <input type="email" id="email" placeholder="Correo electrónico" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <input type="text" id="nick" placeholder="Nick de Minecraft (Solo Registro)">
+                
+                <div class="auth-buttons">
+                    <button type="submit" id="btn-login">Iniciar Sesión</button>
+                    <button type="button" id="btn-register">Registrarse</button>
+                </div>
+            </form>
+            <p id="auth-error" class="error-text"></p>
+        </div>
+    </div>
+
+    <!-- Pantalla Principal del Gacha -->
+    <div id="main-screen" class="screen">
+        <header>
+            <div class="logo">DC GACHA</div>
+            <div class="user-info">
+                <span id="user-nick">Jugador</span>
+                <span class="tokens">🪙 <span id="user-tokens">0</span> Tokens</span>
+                <button id="btn-admin-panel" class="hidden">Panel Admin</button>
+                <button id="btn-logout">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div class="gacha-container">
+            <!-- Izquierda: Cajas -->
+            <div class="panel left-panel">
+                <h2>Cajas Disponibles</h2>
+                <div id="crates-list" class="crates-list">
+                    <!-- Las cajas se cargan desde JS -->
+                </div>
+            </div>
+
+            <!-- Centro: Apertura -->
+            <div class="panel center-panel">
+                <div class="gacha-display">
+                    <h2 id="selected-crate-name">Selecciona una caja</h2>
+                    <p id="selected-crate-desc">Haz clic en una caja de la izquierda para ver sus detalles y tirar.</p>
+                    
+                    <div id="crate-preview" class="crate-preview">
+                        <!-- Vista previa de objetos -->
+                    </div>
+
+                    <div class="gacha-actions hidden" id="gacha-actions">
+                        <p class="pity-text">Pity: <span id="pity-counter">0</span>/10 (Tiradas sin Épico/Legendario)</p>
+                        <button id="btn-pull-1" class="pull-btn">Abrir x1 (1 🪙)</button>
+                        <button id="btn-pull-10" class="pull-btn multiple">Abrir x10 (10 🪙)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Derecha: Historial e Inventario -->
+            <div class="panel right-panel">
+                <div class="tabs">
+                    <button class="tab-btn active" data-target="inventory-tab">Inventario</button>
+                    <button class="tab-btn" data-target="history-tab">Historial Global</button>
+                </div>
+
+                <div id="inventory-tab" class="tab-content active">
+                    <div id="inventory-list" class="items-grid"></div>
+                </div>
+
+                <div id="history-tab" class="tab-content">
+                    <div id="history-list" class="history-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Administrador (Modal) -->
+    <div id="admin-modal" class="modal hidden">
+        <div class="modal-content admin-content">
+            <span class="close-modal" id="close-admin">&times;</span>
+            <h2>Panel de Administrador</h2>
+            
+            <div class="admin-sections">
+                <!-- Gestión de Usuarios -->
+                <div class="admin-section">
+                    <h3>Gestión de Jugadores (Dar Tokens)</h3>
+                    <select id="admin-user-select">
+                        <option value="">Selecciona un jugador...</option>
+                    </select>
+                    <input type="number" id="admin-tokens-amount" placeholder="Cantidad de Tokens">
+                    <button id="btn-add-tokens">Añadir Tokens</button>
+                    <p id="admin-msg" class="success-text"></p>
+                </div>
+
+                <!-- Inicializar Cajas Base -->
+                <div class="admin-section">
+                    <h3>Sistema</h3>
+                    <button id="btn-init-crates" class="danger-btn">Instalar/Resetear Cajas por Defecto</button>
+                    <p class="small-text">Usa esto la primera vez para crear las 4 cajas base en Firebase.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Resultados (Animación) -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content result-content">
+            <h2 id="result-title">¡Abriendo...</h2>
+            <div id="result-items" class="result-items"></div>
+            <button id="btn-close-result" class="hidden">Aceptar</button>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>index.html
