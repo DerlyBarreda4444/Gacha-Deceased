@@ -1,0 +1,171 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+    overflow-x: hidden;
+}
+
+/* Colores de Rareza */
+.rarity-Common { color: #b0bec5; text-shadow: 0 0 5px #b0bec5; border-color: #b0bec5 !important; }
+.rarity-Uncommon { color: #69f0ae; text-shadow: 0 0 5px #69f0ae; border-color: #69f0ae !important; }
+.rarity-Rare { color: #448aff; text-shadow: 0 0 5px #448aff; border-color: #448aff !important; }
+.rarity-Epic { color: #e040fb; text-shadow: 0 0 5px #e040fb; border-color: #e040fb !important; }
+.rarity-Legendary { color: #ffd740; text-shadow: 0 0 8px #ffd740; border-color: #ffd740 !important; }
+
+/* Utilidades */
+.hidden { display: none !important; }
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+.error-text { color: #ff5252; margin-top: 10px; font-size: 0.9em; }
+.success-text { color: #69f0ae; margin-top: 10px; font-size: 0.9em; }
+
+/* Login */
+#auth-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, #2c1010 0%, #121212 100%);
+}
+
+.auth-box {
+    background: #1e1e1e;
+    padding: 40px;
+    border-radius: 8px;
+    border: 2px solid #8b0000;
+    text-align: center;
+    width: 350px;
+    box-shadow: 0 0 20px rgba(139, 0, 0, 0.4);
+}
+
+.auth-box h1 { margin-bottom: 5px; color: #fff; }
+.auth-box h1 span { color: #ff5252; font-size: 0.8em; }
+.auth-box p { margin-bottom: 20px; color: #aaa; }
+.auth-box input {
+    width: 100%; padding: 12px; margin-bottom: 15px;
+    background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px;
+}
+.auth-buttons button {
+    width: 100%; padding: 12px; margin-bottom: 10px;
+    border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
+}
+#btn-login { background: #8b0000; color: white; }
+#btn-login:hover { background: #aa0000; }
+#btn-register { background: #333; color: white; }
+
+/* Header */
+header {
+    background: #1a1a1a;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #8b0000;
+}
+.logo { font-size: 1.5em; font-weight: bold; color: #ff5252; }
+.user-info { display: flex; align-items: center; gap: 20px; }
+.tokens { font-weight: bold; color: #ffd740; background: #2a2a2a; padding: 5px 15px; border-radius: 20px; }
+header button {
+    padding: 8px 15px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer;
+}
+#btn-admin-panel { background: #ffaa00; color: #000; font-weight: bold; }
+
+/* Layout Principal */
+.gacha-container {
+    display: flex;
+    height: calc(100vh - 65px);
+    padding: 20px;
+    gap: 20px;
+}
+.panel {
+    background: #1e1e1e;
+    border-radius: 8px;
+    border: 1px solid #333;
+    padding: 20px;
+    overflow-y: auto;
+}
+.left-panel { flex: 1; min-width: 250px; }
+.center-panel { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px solid #555;}
+.right-panel { flex: 1; min-width: 300px; display: flex; flex-direction: column;}
+
+/* Lista de Cajas */
+.crate-card {
+    background: #2a2a2a; padding: 15px; margin-bottom: 10px;
+    border-radius: 6px; cursor: pointer; border-left: 4px solid #8b0000;
+    transition: 0.2s;
+}
+.crate-card:hover, .crate-card.selected { background: #3a3a3a; transform: translateX(5px); }
+
+/* Centro - Gacha */
+.crate-preview {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 20px 0;
+}
+.preview-item {
+    background: #2a2a2a; padding: 10px; border-radius: 4px; border: 1px solid #444;
+    font-size: 0.8em; width: 100px;
+}
+.pull-btn {
+    padding: 15px 30px; font-size: 1.2em; font-weight: bold; cursor: pointer;
+    border: none; border-radius: 6px; background: #2e7d32; color: white; margin: 5px;
+}
+.pull-btn.multiple { background: #1565c0; }
+.pull-btn:hover { filter: brightness(1.2); }
+.pity-text { color: #aaa; margin-bottom: 10px; font-size: 0.9em; }
+
+/* Pestañas Derecha */
+.tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+.tab-btn {
+    flex: 1; padding: 10px; background: #2a2a2a; color: #fff;
+    border: none; cursor: pointer; border-bottom: 2px solid transparent;
+}
+.tab-btn.active { border-bottom: 2px solid #8b0000; background: #333; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Inventario y Historial */
+.items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.inv-item {
+    background: #2a2a2a; padding: 15px; border-radius: 6px; text-align: center;
+    border: 1px solid #444; border-top-width: 4px;
+}
+.history-entry {
+    background: #2a2a2a; padding: 10px; border-radius: 4px; margin-bottom: 8px; font-size: 0.9em;
+}
+.history-entry span.date { color: #888; font-size: 0.8em; display: block; }
+
+/* Modales */
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+    z-index: 100;
+}
+.modal-content {
+    background: #1e1e1e; padding: 30px; border-radius: 8px; width: 90%; max-width: 600px;
+    border: 2px solid #555; position: relative;
+}
+.close-modal { position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer; }
+.admin-section { margin-top: 20px; background: #2a2a2a; padding: 15px; border-radius: 6px; }
+.admin-section select, .admin-section input {
+    width: 100%; padding: 10px; margin: 10px 0; background: #1a1a1a; color: white; border: 1px solid #444;
+}
+.admin-section button { padding: 10px 20px; cursor: pointer; }
+.danger-btn { background: #8b0000; color: white; border: none; padding: 10px; border-radius: 4px;}
+
+/* Animación Resultados */
+.result-items { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0; }
+.result-item {
+    background: #2a2a2a; padding: 20px; border-radius: 8px; border-top: 4px solid;
+    text-align: center; width: 150px; animation: popIn 0.5s ease-out;
+}
+#btn-close-result { padding: 10px 30px; background: #8b0000; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
