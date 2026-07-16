@@ -88,7 +88,7 @@ document.getElementById('btn-register').addEventListener('click', async (e) => {
         
         // AQUÍ DEFINIMOS QUIÉN ES EL ADMIN AUTOMÁTICAMENTE
         // Cambia "ElAdminSupremo" por el Nick exacto que usará el administrador
-        const userRole = (nick === "ElAdminSupremo") ? "admin" : "player";
+        const userRole = (nick === "Quesillodepeneprepucial") ? "admin" : "player";
 
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
